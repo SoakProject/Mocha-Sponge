@@ -218,10 +218,22 @@ public class MochaSponge {
                                     var name = pluginNode.node("name").getString();
                                     var entryPoint = pluginNode.node("entrypoint").getString();
                                     var description = pluginNode.node("description").getString();
-                                    var version = pluginNode.node("version").getString(globalVersion);
-                                    var homepage = pluginNode.node("links", "homepage").getString(globalHomepage);
-                                    var source = pluginNode.node("links", "source").getString(globalSource);
-                                    var issues = pluginNode.node("links", "issues").getString(globalIssues);
+                                    var version = pluginNode.node("version").getString();
+                                    if (version == null) {
+                                        version = globalVersion;
+                                    }
+                                    var homepage = pluginNode.node("links", "homepage").getString();
+                                    if (homepage == null) {
+                                        homepage = globalHomepage;
+                                    }
+                                    var source = pluginNode.node("links", "source").getString();
+                                    if (source == null) {
+                                        source = globalSource;
+                                    }
+                                    var issues = pluginNode.node("links", "issues").getString();
+                                    if (issues == null) {
+                                        issues = globalIssues;
+                                    }
                                     StandardPluginLinks links = StandardPluginLinks.none();
                                     try {
                                         //if null then only that link should fail
