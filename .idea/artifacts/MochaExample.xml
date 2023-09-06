@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="MochaExample">
+    <output-path>$PROJECT_DIR$/Test</output-path>
+    <root id="archive" name="MochaExample.jar">
+      <element id="module-output" name="examplemochaplugin" />
+    </root>
+  </artifact>
+</component>
