@@ -2,12 +2,15 @@ package org.soak.mocha.main;
 
 import com.google.inject.Guice;
 import org.soak.mocha.plugin.mocha.MochaPlugin;
+import org.soak.mocha.plugin.mocha.action.ActionTypes;
+import org.soak.mocha.plugin.mocha.action.actions.lifecycle.construct.ConstructPluginActionBuilder;
 import org.soak.mocha.plugin.mocha.environment.MochaEnvironment;
 import org.soak.mocha.plugin.mocha.environment.MochaEnvironmentSetup;
+import org.soak.mocha.plugin.sponge.plugin.MochaPluginContainer;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.event.Cause;
 import org.spongepowered.configurate.jackson.JacksonConfigurationLoader;
-import org.spongepowered.plugin.PluginContainer;
 import org.spongepowered.plugin.builtin.StandardPluginCandidate;
-import org.spongepowered.plugin.builtin.jvm.JVMPluginContainer;
 import org.spongepowered.plugin.builtin.jvm.locator.JVMPluginResource;
 import org.spongepowered.plugin.builtin.jvm.locator.ResourceType;
 import org.spongepowered.plugin.metadata.builtin.StandardPluginMetadata;
@@ -99,7 +102,38 @@ public class MochaSponge {
         MochaEnvironment environment = new MochaEnvironment(environmentSetup);
         globalValues.setEnvironment(environment);
 
-        Guice.createInjector(new SpongeGlobalGameModule()).injectMembers(environment);
+        setup(environment);
+
+        System.out.println("Creating main instance(s)");
+        loadedPlugins.parallelStream().forEach(pc -> {
+            launchPlugin(pluginClassLoader, pc);
+        });
+    }
+
+    private static void launchPlugin(ClassLoader pluginClassLoader, MochaPluginContainer pc) {
+        Object mainInstance = null;
+        try {
+            mainInstance = pc.initializeInstance(pluginClassLoader);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        if (mainInstance == null) {
+            throw new RuntimeException("Main instance was not created");
+        }
+        Sponge.eventManager().registerListeners(pc, mainInstance);
+
+        var cause = Cause.builder().append(pluginClassLoader).append(pc).build();
+        var constructAction = ActionTypes.CONSTRUCT_PLUGIN.<ConstructPluginActionBuilder>actionBuilder()
+                .setPlugin(pc)
+                .setCause(cause)
+                .build();
+        var spongeEvent = constructAction.createSpongeEvent();
+        Sponge.eventManager().post(spongeEvent);
+        System.out.println("Constructed " + pc.metadata().id());
+    }
+
+    public static void setup(MochaEnvironment environment) {
+        Guice.createInjector(new SpongeGlobalGameModule(environment)).injectMembers(Sponge.class);
     }
 
     private static MochaPlugin loadMochaPlugin(File mochaPluginFile, String mainClass) throws IOException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
@@ -274,7 +308,7 @@ public class MochaSponge {
                         AbstractMap.SimpleImmutableEntry::getValue));
     }
 
-    private static List<PluginContainer> loadSpongePlugins(Map<StandardPluginMetadata, File> metadatas, Collection<String> loadOrder) {
+    private static List<MochaPluginContainer> loadSpongePlugins(Map<StandardPluginMetadata, File> metadatas, Collection<String> loadOrder) {
         return loadOrder.stream().map(pluginId -> {
             var metadataEntry = metadatas.entrySet()
                     .stream()
@@ -286,7 +320,7 @@ public class MochaSponge {
                     metadataEntry.getValue().toPath(),
                     null);
             var pluginCandidate = new StandardPluginCandidate<>(metadataEntry.getKey(), pluginMetadataResource);
-            return new JVMPluginContainer(pluginCandidate);
+            return new MochaPluginContainer(pluginCandidate);
         }).collect(Collectors.toList());
     }
 }

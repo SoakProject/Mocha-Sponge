@@ -2,6 +2,8 @@ package org.soak.mocha.plugin.mocha.environment;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.NotNull;
+import org.soak.mocha.plugin.sponge.event.MochaEventManager;
+import org.soak.mocha.utils.Singleton;
 import org.spongepowered.api.*;
 import org.spongepowered.api.config.ConfigManager;
 import org.spongepowered.api.data.DataManager;
@@ -25,10 +27,12 @@ import java.util.stream.Stream;
 public class MochaEnvironment implements Game {
 
     private final @NotNull Path gameDirectory;
+    private final Singleton<MochaEventManager> eventManager = new Singleton<>(MochaEventManager::new);
 
-    public MochaEnvironment(MochaEnvironmentSetup setup){
+    public MochaEnvironment(MochaEnvironmentSetup setup) {
         this.gameDirectory = setup.path();
     }
+
     @Override
     public Scheduler asyncScheduler() {
         throw new RuntimeException("Not implemented yet");
@@ -86,7 +90,7 @@ public class MochaEnvironment implements Game {
 
     @Override
     public EventManager eventManager() {
-        throw new RuntimeException("Not implemented yet");
+        return this.eventManager.get();
     }
 
     @Override

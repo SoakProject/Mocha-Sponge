@@ -1,6 +1,7 @@
 package org.soak.mocha.main;
 
 import org.soak.mocha.plugin.mocha.environment.MochaEnvironment;
+import org.soak.mocha.plugin.sponge.plugin.MochaPluginContainer;
 import org.spongepowered.plugin.PluginContainer;
 import org.spongepowered.plugin.metadata.builtin.StandardPluginMetadata;
 
@@ -14,7 +15,7 @@ public class GlobalValues {
 
     private static MochaEnvironment ENVIRONMENT;
     private static Map<StandardPluginMetadata, File> REQUESTED_PLUGINS;
-    private static List<PluginContainer> LOADED_PLUGINS;
+    private static List<MochaPluginContainer> LOADED_PLUGINS;
 
     GlobalValues() {
 
@@ -44,7 +45,7 @@ public class GlobalValues {
         ENVIRONMENT = environment;
     }
 
-    public void setLoadedPlugins(List<PluginContainer> containers) {
+    public void setLoadedPlugins(List<MochaPluginContainer> containers) {
         LOADED_PLUGINS = containers;
     }
 

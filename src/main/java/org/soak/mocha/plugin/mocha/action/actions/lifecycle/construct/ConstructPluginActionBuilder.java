@@ -21,6 +21,10 @@ public class ConstructPluginActionBuilder implements ActionBuilder<ConstructPlug
         return this;
     }
 
+    public ConstructPluginActionBuilder setPlugin(PluginContainer plugin) {
+        return this.setPlugin(() -> plugin);
+    }
+
     @Override
     public ConstructPluginAction build() {
         return new ConstructPluginAction(this);
